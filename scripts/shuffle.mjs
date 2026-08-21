@@ -29,18 +29,25 @@ const total = names.length;
 const TIME_LABELS = {
   1: ["All Day"], // 24h
   2: ["AM", "PM"], // 12h
-  3: ["12–8 AM", "8 AM–4 PM", "4 PM–12 AM"], // 8h
-  4: ["12–6 AM", "6 AM–12 PM", "12–6 PM", "6 PM–12 AM"], // 6h
-  6: ["12–4 AM", "4–8 AM", "8 AM–12 PM", "12–4 PM", "4–8 PM", "8 PM–12 AM"], // 4h
+  3: ["12AM - 8AM", "8AM - 4PM", "4PM - 12AM"], // 8h
+  4: ["12AM - 6AM", "6AM - 12PM", "12PM - 6PM", "6PM - 12AM"], // 6h
+  6: [
+    "12AM - 4AM",
+    "4AM - 8AM",
+    "8AM - 12PM",
+    "12PM - 4PM",
+    "4PM - 8PM",
+    "8PM - 12AM",
+  ], // 4h
   8: [
-    "12–3 AM",
-    "3–6 AM",
-    "6–9 AM",
-    "9 AM–12 PM",
-    "12–3 PM",
-    "3–6 PM",
-    "6–9 PM",
-    "9 PM–12 AM",
+    "12AM - 3AM",
+    "3AM - 6AM",
+    "6AM - 9AM",
+    "9AM - 12PM",
+    "12PM - 3PM",
+    "3PM - 6PM",
+    "6PM - 9PM",
+    "9PM - 12AM",
   ], // 3h
 };
 const VALID_COLS = [1, 2, 3, 4, 6, 8];
