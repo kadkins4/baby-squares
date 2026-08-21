@@ -18,14 +18,13 @@ npm run build      # production build -> dist/
    - `board.rows` / `board.cols` — grid size (default 7 × 4 = 28 squares).
    - `yLabels` (rows) / `xLabels` (columns) — axis headers.
    - `roster` — one entry per person: `{ "name": "...", "squares": N }`.
-   - `seed` — change this string to reroll the placement.
 2. Freeze the placement:
    ```bash
    npm run shuffle
    ```
-   Shuffles the roster into the grid with the seed and writes
-   `src/placement.json`. Same seed → same board (reproducible). It warns if the
-   roster doesn't fill the board exactly; unfilled squares render as `OPEN`.
+   Shuffles the roster into the grid and writes `src/placement.json`. Every run
+   makes a new random board — re-run until you like it, then commit. It warns if
+   the roster doesn't fill the board exactly; unfilled squares render as `OPEN`.
 3. `npm run build` and deploy `dist/` to Vercel.
 
 The reveal is self-played: each viewer opens the page and hits **Start reveal**.
