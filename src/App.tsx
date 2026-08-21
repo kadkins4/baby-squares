@@ -3,16 +3,19 @@ import config from "./config.json";
 import placement from "./placement.json";
 
 // --- reveal timing (ms). Tune these to taste. ---
-const NAME_STAGGER = 200; // between each name popping in
-const NAMES_START = 350; // lead-in before names start popping
-const SETTLE = 500; // flourish tail after last name
+const NAME_STAGGER = 380; // between each name popping in
+const NAMES_START = 450; // lead-in before names start popping
+const POP_MS = 620; // pop animation duration (keep in sync with .pop in CSS)
+const OPEN_GAP = 550; // pause after the last name before OPEN slots appear
+const OPEN_STAGGER = 160; // between each OPEN slot fading in
+const SETTLE = 500; // flourish tail after last reveal
 
 const { rows, cols } = config.board;
 const cells = placement.cells as (string | null)[];
 
-function shuffledIndices(n: number): number[] {
-  const a = Array.from({ length: n }, (_, i) => i);
-  for (let i = n - 1; i > 0; i--) {
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
@@ -20,22 +23,58 @@ function shuffledIndices(n: number): number[] {
 }
 
 type Timing = {
-  nameDelay: number[]; // per cell index
+  nameDelay: number[]; // per cell index (filled cells only)
+  openDelay: number[]; // per cell index (open cells only)
   total: number;
 };
 
 function buildTiming(): Timing {
-  // Random *visual* pop order (not placement — placement is frozen).
-  // Axis headers are static (fixed order), so only the names animate.
-  const nameOrder = shuffledIndices(rows * cols);
+  // Random *visual* order (not placement — placement is frozen).
+  // Names pop back-to-back first; empty slots fade in afterward.
+  const all = cells.map((_, i) => i);
+  const filled = shuffle(all.filter((i) => cells[i] != null));
+  const open = shuffle(all.filter((i) => cells[i] == null));
 
-  const nameDelay = new Array(rows * cols);
-  nameOrder.forEach((cellIdx, pos) => {
+  const nameDelay = new Array(cells.length);
+  filled.forEach((cellIdx, pos) => {
     nameDelay[cellIdx] = NAMES_START + pos * NAME_STAGGER;
   });
-  const total = NAMES_START + rows * cols * NAME_STAGGER + SETTLE;
 
-  return { nameDelay, total };
+  const lastName =
+    NAMES_START + Math.max(0, filled.length - 1) * NAME_STAGGER + POP_MS;
+  const openStart = lastName + OPEN_GAP;
+
+  const openDelay = new Array(cells.length);
+  open.forEach((cellIdx, pos) => {
+    openDelay[cellIdx] = openStart + pos * OPEN_STAGGER;
+  });
+
+  const total = openStart + open.length * OPEN_STAGGER + SETTLE;
+
+  return { nameDelay, openDelay, total };
+}
+
+type LegendEntry = { name: string; count: number; slots: string[] };
+
+function buildLegend(): LegendEntry[] {
+  const byName = new Map<string, string[]>();
+  cells.forEach((name, idx) => {
+    if (!name) return;
+    const r = Math.floor(idx / cols);
+    const c = idx % cols;
+    const label = `${config.yLabels[r]} ${config.xLabels[c]}`;
+    const slots = byName.get(name) ?? [];
+    slots.push(label);
+    byName.set(name, slots);
+  });
+  const list = [...byName.entries()].map(([name, slots]) => ({
+    name,
+    count: slots.length,
+    slots,
+  }));
+  // highest entry count first, then alphabetical
+  list.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return list;
 }
 
 export default function App() {
@@ -43,10 +82,17 @@ export default function App() {
   // new object each start => re-randomizes the visual order and restarts CSS animations
   const [timing, setTiming] = useState<Timing | null>(null);
 
+  const legend = useMemo(buildLegend, []);
+
   const grid = useMemo(
     () => ({
       gridTemplateColumns: `minmax(3.5rem, auto) repeat(${cols}, minmax(0, 1fr))`,
     }),
+    [],
+  );
+  // widen the stage for bigger boards so names aren't crushed (scrolls if still too wide)
+  const stageStyle = useMemo(
+    () => ({ maxWidth: `min(96vw, ${Math.max(720, cols * 120 + 90)}px)` }),
     [],
   );
 
@@ -73,7 +119,7 @@ export default function App() {
       )}
 
       {started && timing && (
-        <section className="stage">
+        <section className="stage" style={stageStyle}>
           <h1 className="board-title">{config.title}</h1>
           <div className="board-wrap">
             <div className="board" style={grid}>
@@ -97,6 +143,22 @@ export default function App() {
           <button className="replay" onClick={replay}>
             ↻ Replay
           </button>
+
+          <div
+            className="legend"
+            style={{ animationDelay: `${timing.total}ms` }}
+          >
+            <div className="legend-head">
+              Entries — {legend.reduce((s, p) => s + p.count, 0)} squares
+            </div>
+            {legend.map((p) => (
+              <div className="legend-row" key={p.name}>
+                <span className="legend-count">{p.count}</span>
+                <span className="legend-name">{p.name}</span>
+                <span className="legend-slots">{p.slots.join(" · ")}</span>
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>
@@ -134,7 +196,12 @@ function RowFragment({
                 {name}
               </span>
             ) : (
-              <span className="name name--open">OPEN</span>
+              <span
+                className="name name--open fade-open"
+                style={{ animationDelay: `${timing.openDelay[idx]}ms` }}
+              >
+                OPEN
+              </span>
             )}
           </div>
         );
