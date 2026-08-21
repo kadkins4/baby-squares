@@ -7,3 +7,6 @@ dist
 # verification screenshots
 board*.png
 title.png
+
+# editor/backup files
+*.bak
