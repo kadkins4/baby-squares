@@ -1,39 +1,66 @@
 {
   "title": "Baby Squares",
-  "subtitle": "Placeholder subtitle — set in src/config.json",
+  "subtitle": "Baby Osama Bin Drbal",
   "startButtonLabel": "Start reveal",
-  "seed": "baby-squares-2026",
-  "board": { "rows": 7, "cols": 4 },
-  "yLabels": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  "xLabels": ["12–6a", "6a–12p", "12p–6p", "6p–12a"],
+  "board": {
+    "rows": 7,
+    "cols": 8
+  },
+  "yLabels": [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat"
+  ],
+  "xLabels": [
+    "12–3 AM",
+    "3–6 AM",
+    "6–9 AM",
+    "9 AM–12 PM",
+    "12–3 PM",
+    "3–6 PM",
+    "6–9 PM",
+    "9 PM–12 AM"
+  ],
   "roster": [
-    { "name": "Player 1", "squares": 1 },
-    { "name": "Player 2", "squares": 1 },
-    { "name": "Player 3", "squares": 1 },
-    { "name": "Player 4", "squares": 1 },
-    { "name": "Player 5", "squares": 1 },
-    { "name": "Player 6", "squares": 1 },
-    { "name": "Player 7", "squares": 1 },
-    { "name": "Player 8", "squares": 1 },
-    { "name": "Player 9", "squares": 1 },
-    { "name": "Player 10", "squares": 1 },
-    { "name": "Player 11", "squares": 1 },
-    { "name": "Player 12", "squares": 1 },
-    { "name": "Player 13", "squares": 1 },
-    { "name": "Player 14", "squares": 1 },
-    { "name": "Player 15", "squares": 1 },
-    { "name": "Player 16", "squares": 1 },
-    { "name": "Player 17", "squares": 1 },
-    { "name": "Player 18", "squares": 1 },
-    { "name": "Player 19", "squares": 1 },
-    { "name": "Player 20", "squares": 1 },
-    { "name": "Player 21", "squares": 1 },
-    { "name": "Player 22", "squares": 1 },
-    { "name": "Player 23", "squares": 1 },
-    { "name": "Player 24", "squares": 1 },
-    { "name": "Player 25", "squares": 1 },
-    { "name": "Player 26", "squares": 1 },
-    { "name": "Player 27", "squares": 1 },
-    { "name": "Player 28", "squares": 1 }
+    {
+      "name": "Kendall",
+      "squares": 3
+    },
+    {
+      "name": "Daddy Drbal",
+      "squares": 4
+    },
+    {
+      "name": "Serow",
+      "squares": 1
+    },
+    {
+      "name": "Weller",
+      "squares": 2
+    },
+    {
+      "name": "Alex Dempsey",
+      "squares": 2
+    },
+    {
+      "name": "Brett",
+      "squares": 2
+    },
+    {
+      "name": "Libby Drbal",
+      "squares": 10
+    },
+    {
+      "name": "Tyler Drbal",
+      "squares": 10
+    },
+    {
+      "name": "Yolanda Adkins",
+      "squares": 10
+    }
   ]
 }
