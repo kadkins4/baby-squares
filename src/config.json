@@ -2,19 +2,12 @@
   "title": "Baby Squares",
   "subtitle": "Baby Osama Bin Drbal",
   "startButtonLabel": "Start reveal",
+  "pricePerSquare": 5,
   "board": {
     "rows": 7,
     "cols": 8
   },
-  "yLabels": [
-    "Sun",
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat"
-  ],
+  "yLabels": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   "xLabels": [
     "12AM - 3AM",
     "3AM - 6AM",
@@ -28,7 +21,7 @@
   "roster": [
     {
       "name": "Kendall",
-      "squares": 3
+      "squares": 2
     },
     {
       "name": "Daddy Drbal",

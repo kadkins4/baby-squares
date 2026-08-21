@@ -84,10 +84,12 @@ export default function App() {
   const [legendOpen, setLegendOpen] = useState(true);
 
   const legend = useMemo(buildLegend, []);
-  const totalSquares = useMemo(
+  const filledSquares = useMemo(
     () => legend.reduce((s, p) => s + p.count, 0),
     [legend],
   );
+  const boardSquares = rows * cols;
+  const prizePool = filledSquares * (config.pricePerSquare ?? 5);
 
   const grid = useMemo(
     () => ({
@@ -126,6 +128,17 @@ export default function App() {
       {started && timing && (
         <section className="stage" style={stageStyle}>
           <h1 className="board-title">{config.title}</h1>
+          <div className="board-stats">
+            <span className="board-stat">
+              {filledSquares} / {boardSquares} squares filled
+            </span>
+            <span className="board-stat-sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="board-stat">
+              ${prizePool.toLocaleString()} Prize Pool
+            </span>
+          </div>
           <div className="board-wrap">
             <div className="board" style={grid}>
               <div className="corner" />
@@ -161,8 +174,8 @@ export default function App() {
             >
               <span>
                 {legendOpen
-                  ? `Entries — ${legend.length} people · ${totalSquares} squares`
-                  : `${legend.length} people participating`}
+                  ? `Entries - ${legend.length} Participants`
+                  : `${legend.length} Participants`}
               </span>
               <span className="legend-toggle" aria-hidden="true">
                 {legendOpen ? "▲" : "▼"}
@@ -173,7 +186,13 @@ export default function App() {
                 <div className="legend-row" key={p.name}>
                   <span className="legend-count">{p.count}</span>
                   <span className="legend-name">{p.name}</span>
-                  <span className="legend-slots">{p.slots.join(" · ")}</span>
+                  <span className="legend-slots">
+                    {p.slots.map((s, i) => (
+                      <span className="legend-slot" key={i}>
+                        {s}
+                      </span>
+                    ))}
+                  </span>
                 </div>
               ))}
           </div>
