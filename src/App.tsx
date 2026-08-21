@@ -81,8 +81,13 @@ export default function App() {
   const [started, setStarted] = useState(false);
   // new object each start => re-randomizes the visual order and restarts CSS animations
   const [timing, setTiming] = useState<Timing | null>(null);
+  const [legendOpen, setLegendOpen] = useState(true);
 
   const legend = useMemo(buildLegend, []);
+  const totalSquares = useMemo(
+    () => legend.reduce((s, p) => s + p.count, 0),
+    [legend],
+  );
 
   const grid = useMemo(
     () => ({
@@ -145,19 +150,32 @@ export default function App() {
           </button>
 
           <div
-            className="legend"
+            className={`legend ${legendOpen ? "is-open" : "is-closed"}`}
             style={{ animationDelay: `${timing.total}ms` }}
           >
-            <div className="legend-head">
-              Entries — {legend.reduce((s, p) => s + p.count, 0)} squares
-            </div>
-            {legend.map((p) => (
-              <div className="legend-row" key={p.name}>
-                <span className="legend-count">{p.count}</span>
-                <span className="legend-name">{p.name}</span>
-                <span className="legend-slots">{p.slots.join(" · ")}</span>
-              </div>
-            ))}
+            <button
+              type="button"
+              className="legend-head"
+              onClick={() => setLegendOpen((o) => !o)}
+              aria-expanded={legendOpen}
+            >
+              <span>
+                {legendOpen
+                  ? `Entries — ${legend.length} people · ${totalSquares} squares`
+                  : `${legend.length} people participating`}
+              </span>
+              <span className="legend-toggle" aria-hidden="true">
+                {legendOpen ? "▲" : "▼"}
+              </span>
+            </button>
+            {legendOpen &&
+              legend.map((p) => (
+                <div className="legend-row" key={p.name}>
+                  <span className="legend-count">{p.count}</span>
+                  <span className="legend-name">{p.name}</span>
+                  <span className="legend-slots">{p.slots.join(" · ")}</span>
+                </div>
+              ))}
           </div>
         </section>
       )}
