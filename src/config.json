@@ -1,7 +1,7 @@
 {
   "title": "Baby Squares",
-  "subtitle": "Baby Osama Bin Drbal",
-  "startButtonLabel": "Start reveal",
+  "subtitle": "Baby Drbal",
+  "startButtonLabel": "Reveal",
   "pricePerSquare": 5,
   "board": {
     "rows": 7,
@@ -37,7 +37,7 @@
     },
     {
       "name": "Alex Dempsey",
-      "squares": 2
+      "squares": 7
     },
     {
       "name": "Brett",

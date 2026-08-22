@@ -41,6 +41,55 @@ body {
   padding: 1.75rem 1rem;
 }
 
+/* ---------- portfolio back-link (floating chip) ---------- */
+/* Kenny's real site mark sits on a calm chip; it recedes when idle and
+   brightens on hover/focus so it's present but never distracting. */
+.link-chip {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.4rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cfe0ff;
+  background: rgba(17, 26, 46, 0.72);
+  border: 1px solid rgba(147, 197, 253, 0.22);
+  backdrop-filter: blur(6px);
+  opacity: 0.72;
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.12s ease;
+}
+.link-chip:hover,
+.link-chip:focus-visible {
+  opacity: 1;
+  background: rgba(17, 26, 46, 0.92);
+  border-color: rgba(147, 197, 253, 0.5);
+  transform: translateY(-1px);
+}
+.link-chip:focus-visible {
+  outline: 2px solid var(--blue-light);
+  outline-offset: 2px;
+}
+.link-chip-mark {
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  border-radius: 8px;
+}
+.link-chip-ext {
+  color: #8fa6cc;
+  font-size: 0.8rem;
+}
+
 /* ---------- title card ---------- */
 .title-card {
   text-align: center;

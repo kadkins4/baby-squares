@@ -13,6 +13,27 @@ const SETTLE = 500; // flourish tail after last reveal
 const { rows, cols } = config.board;
 const cells = placement.cells as (string | null)[];
 
+const PORTFOLIO = "https://kendalladkins.dev";
+
+// Kenny's site mark: dark tile, "K" cream + "A." bronze (from kendalladkins.dev/icon.svg)
+function KaMark() {
+  return (
+    <svg className="link-chip-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#0d0b09" />
+      <text
+        x="4"
+        y="23"
+        fontFamily="system-ui, -apple-system, sans-serif"
+        fontWeight="700"
+        fontSize="16"
+      >
+        <tspan fill="#ebe6e0">K</tspan>
+        <tspan fill="#a08060">A.</tspan>
+      </text>
+    </svg>
+  );
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -127,6 +148,20 @@ export default function App() {
 
   return (
     <div className="app">
+      <a
+        className="link-chip"
+        href={PORTFOLIO}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Kendall Adkins portfolio, kendalladkins.dev (opens in a new tab)"
+      >
+        <KaMark />
+        <span className="link-chip-text">Kendall Adkins</span>
+        <span className="link-chip-ext" aria-hidden="true">
+          ↗
+        </span>
+      </a>
+
       {!started && (
         <section className="title-card">
           <h1 className="title">{config.title}</h1>
