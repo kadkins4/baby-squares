@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import config from "./config.json";
 import placement from "./placement.json";
 
@@ -81,7 +81,9 @@ export default function App() {
   const [started, setStarted] = useState(false);
   // new object each start => re-randomizes the visual order and restarts CSS animations
   const [timing, setTiming] = useState<Timing | null>(null);
+  const [done, setDone] = useState(false); // reveal finished (or skipped)
   const [legendOpen, setLegendOpen] = useState(true);
+  const doneTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const legend = useMemo(buildLegend, []);
   const filledSquares = useMemo(
@@ -104,14 +106,24 @@ export default function App() {
   );
 
   function start() {
-    setTiming(buildTiming());
+    const t = buildTiming();
+    clearTimeout(doneTimer.current);
+    setTiming(t);
+    setDone(false);
     setStarted(true);
+    doneTimer.current = setTimeout(() => setDone(true), t.total);
+  }
+  function skip() {
+    clearTimeout(doneTimer.current);
+    setDone(true);
   }
   function replay() {
     setStarted(false);
+    setDone(false);
     // next tick restart so CSS animations re-trigger
     requestAnimationFrame(() => start());
   }
+  useEffect(() => () => clearTimeout(doneTimer.current), []);
 
   return (
     <div className="app">
@@ -126,7 +138,10 @@ export default function App() {
       )}
 
       {started && timing && (
-        <section className="stage" style={stageStyle}>
+        <section
+          className={`stage ${done ? "is-done" : "is-revealing"}`}
+          style={stageStyle}
+        >
           <h1 className="board-title">{config.title}</h1>
           <div className="board-stats">
             <span className="board-stat">
@@ -158,9 +173,15 @@ export default function App() {
               ))}
             </div>
           </div>
-          <button className="replay" onClick={replay}>
-            ↻ Replay
-          </button>
+          {done ? (
+            <button className="replay" onClick={replay}>
+              ↻ Replay
+            </button>
+          ) : (
+            <button className="replay" onClick={skip}>
+              ⏭ Skip reveal
+            </button>
+          )}
 
           <div
             className={`legend ${legendOpen ? "is-open" : "is-closed"}`}
