@@ -7,7 +7,15 @@
     "rows": 7,
     "cols": 8
   },
-  "yLabels": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "yLabels": [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat"
+  ],
   "xLabels": [
     "12AM - 3AM",
     "3AM - 6AM",
@@ -20,7 +28,7 @@
   ],
   "roster": [
     {
-      "name": "Kendall",
+      "name": "Kendall Adkins",
       "squares": 2
     },
     {
@@ -28,11 +36,11 @@
       "squares": 4
     },
     {
-      "name": "Serow",
+      "name": "Brian Serow",
       "squares": 1
     },
     {
-      "name": "Weller",
+      "name": "Andrew Weller",
       "squares": 2
     },
     {
@@ -40,7 +48,7 @@
       "squares": 7
     },
     {
-      "name": "Brett",
+      "name": "Brett Brawerman",
       "squares": 2
     },
     {
@@ -54,6 +62,14 @@
     {
       "name": "Yolanda Adkins",
       "squares": 10
+    },
+    {
+      "name": "Dave",
+      "squares": 4
+    },
+    {
+      "name": "Peter Dempsey",
+      "squares": 2
     }
   ]
 }
