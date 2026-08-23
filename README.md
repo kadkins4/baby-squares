@@ -1,47 +1,84 @@
-# Baby Squares
+<div align="center">
 
-SuperBowl-style squares for a baby's arrival. 2D grid (days × time segments),
-frozen random name placement, cinematic reveal. Static, no backend.
+# 🍼 Baby Squares
 
-## Run it
+**A Super Bowl-style squares pool for guessing when the baby arrives.**
+
+Everyone picks squares. Each square is a day and a time window. When the baby
+shows up, whoever holds that square takes the pot.
+
+![The Baby Squares board](docs/board.png)
+
+</div>
+
+---
+
+## How it works
+
+The board is a grid: **days down the side, time blocks across the top**. Every
+square belongs to one person. Names are shuffled into place once and frozen, so
+the board is fair and fixed before the guessing starts.
+
+Open the page and hit reveal. Names pop in one by one, the open squares fade in
+after, and the roster fills in below. Whoever owns the square matching the real
+birth day and time wins.
+
+The stats line tracks the pool in real time: how many squares are filled and how
+much is riding on it, at **$5 per square** by default.
+
+## On a phone
+
+The board reshapes for small screens instead of shrinking to nothing. A bottom
+tab bar switches between three views:
+
+| Board | By day | Mine |
+| :---: | :---: | :---: |
+| The whole grid, color-coded, tap any square to see who has it | Swipe through one day at a time, fully readable | Tap your name and see exactly which squares are yours |
+
+<div align="center">
+<img src="docs/mobile.png" alt="Baby Squares on a phone" width="300" />
+</div>
+
+## Run your own board
+
+You need [Node](https://nodejs.org). Then:
 
 ```bash
 npm install
-npm run dev        # local dev
-npm run build      # production build -> dist/
+npm run dev        # local preview at localhost:5173
 ```
 
-## Set up a game
-
-1. Edit `src/config.json`:
-   - `title`, `subtitle` — the title card text.
-   - `board.rows` / `board.cols` — grid size (default 7 × 4 = 28 squares).
-   - `yLabels` (rows) / `xLabels` (columns) — axis headers.
-   - `roster` — one entry per person: `{ "name": "...", "squares": N }`.
-2. Freeze the placement:
+1. **Edit `src/config.json`** — the title, subtitle, the day labels, the price
+   per square, and the `roster` (one entry per person: `{ "name": "...",
+   "squares": N }`).
+2. **Freeze the board:**
    ```bash
    npm run shuffle
    ```
-   Shuffles the roster into the grid and writes `src/placement.json`. Every run
-   makes a new random board — re-run until you like it, then commit. It warns if
-   the roster doesn't fill the board exactly; unfilled squares render as `OPEN`.
-3. `npm run build` and deploy `dist/` to Vercel.
+   This scatters the roster into the grid and writes `src/placement.json`. The
+   time columns auto-scale to the crowd: the more people play, the finer the day
+   is sliced (from one all-day block up to eight 3-hour blocks). Every run makes
+   a fresh random board, so re-run until you like the layout, then commit it.
+3. **Build and deploy:**
+   ```bash
+   npm run build
+   ```
 
-The reveal is self-played: each viewer opens the page and hits **Start reveal**.
-For the group moment, run it once on your screen and screen-share.
+Unfilled squares render as `OPEN`. If the roster overflows the biggest board
+(7 days times 8 blocks = 56 squares), `shuffle` warns you and drops the extras.
 
-## Deploy (Vercel)
+## Deploy
 
-Framework preset: **Vite**. Build command `npm run build`, output `dist`.
-`vercel.json` is included for a bare `vercel deploy` too.
+Built for [Vercel](https://vercel.com). Import the repo, keep the defaults
+(`vercel.json` sets the Vite preset, `npm run build`, and `dist/` output), and
+ship. It is a static site, so any static host works too.
 
-## Reveal timing
+## Under the hood
 
-Tune the constants at the top of `src/App.tsx` (`FLIP_STAGGER`, `NAME_STAGGER`,
-etc.) to speed up or slow down the crescendo.
+React 18, TypeScript, and Vite. No backend, no database, no tracking. The reveal
+is CSS animation driven by per-square delays; the whole thing is one page that
+runs entirely in the browser.
 
-## Not in v1 (backlog)
-
-- Winner reveal (enter birth day+time → spotlight the winning square).
-- Setup UI + backend for other people to run their own boards.
-- Prize tiers.
+<div align="center">
+<sub>Built by <a href="https://kendalladkins.dev">Kendall Adkins</a></sub>
+</div>

@@ -4,9 +4,11 @@ dist
 *.local
 .vercel
 
-# verification screenshots
-board*.png
-title.png
+# verification screenshots (root only; keep docs/*.png)
+/board*.png
+/title.png
+/desktop-*.png
+/m-*.png
 
 # editor/backup files
 *.bak
