@@ -129,12 +129,13 @@ legend.forEach(
   (p, i) => (colorFor[p.name] = CELL_PALETTE[i % CELL_PALETTE.length]),
 );
 
+// up to 3 initials, one char per word; keeps "&" (e.g. "Libby & Drbal" -> L&D)
 const initialsOf = (n: string) =>
   n
-    .split(" ")
+    .split(/\s+/)
     .map((w) => w[0])
     .join("")
-    .slice(0, 2)
+    .slice(0, 3)
     .toUpperCase();
 
 // "12AM - 3AM" -> "12a" for the tiny mobile board header
