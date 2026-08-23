@@ -1,6 +1,9 @@
-// Shuffles the roster into the board and freezes it to src/placement.json.
-// Each run makes a NEW random board. Re-run until you like it, then commit
-// + deploy. (No seed — kept simple. Add one back if this ever goes public.)
+// Freezes the name -> cell placement for the board and writes src/placement.json.
+//
+// FAILSAFE: the shuffle is seeded off config.seed, so the board is reproducible
+// and auditable — same seed always yields the same board. Re-running never
+// silently rerolls a board people have already seen; to reroll you must
+// deliberately change the seed in src/config.json. A missing seed is refused.
 //
 //   npm run shuffle
 //
@@ -13,6 +16,37 @@ const configPath = join(root, "src", "config.json");
 const placementPath = join(root, "src", "placement.json");
 
 const config = JSON.parse(readFileSync(configPath, "utf8"));
+
+// --- FAILSAFE: require an explicit seed before touching the board ---
+if (config.seed == null || String(config.seed).trim() === "") {
+  console.error(
+    `\n  ✖  No "seed" set in src/config.json.\n` +
+      `     Add one (any string) to freeze a reproducible board:\n` +
+      `        "seed": "your-seed-here"\n` +
+      `     Same seed => same board. Change the seed to deliberately reroll.\n`,
+  );
+  process.exit(1);
+}
+
+// --- seeded RNG: string -> uint32 seed -> mulberry32 (deterministic) ---
+function hashSeed(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rng = mulberry32(hashSeed(String(config.seed)));
 
 // --- expand roster into one entry per square ---
 const names = [];
@@ -87,14 +121,15 @@ if (names.length !== size) {
 while (names.length < size) names.push(null);
 names.length = size;
 
-// --- Fisher-Yates (plain random, new board every run) ---
+// --- Fisher-Yates with the seeded rng (reproducible for a given seed) ---
 for (let i = names.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
+  const j = Math.floor(rng() * (i + 1));
   [names[i], names[j]] = [names[j], names[i]];
 }
 
 // cells are row-major: index = row * cols + col
 const placement = {
+  seed: config.seed,
   rows: config.board.rows,
   cols: config.board.cols,
   cells: names,
@@ -103,5 +138,5 @@ writeFileSync(placementPath, JSON.stringify(placement, null, 2) + "\n");
 
 const filled = names.filter(Boolean).length;
 console.log(
-  `  ✓ New board frozen: ${filled}/${size} squares filled -> src/placement.json`,
+  `  ✓ Board frozen (seed "${config.seed}"): ${filled}/${size} squares filled -> src/placement.json`,
 );
