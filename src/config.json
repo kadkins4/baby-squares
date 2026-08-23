@@ -64,11 +64,15 @@
       "squares": 10
     },
     {
-      "name": "Dave",
+      "name": "Dave Schryver",
       "squares": 4
     },
     {
       "name": "Peter Dempsey",
+      "squares": 2
+    },
+    {
+      "name": "Greg Elgort",
       "squares": 2
     }
   ]
