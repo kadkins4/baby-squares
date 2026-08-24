@@ -138,6 +138,16 @@ legend.forEach(
   (p, i) => (colorFor[p.name] = CELL_PALETTE[i % CELL_PALETTE.length]),
 );
 
+// full-name tile sizing (desktop): shrink the font as the name grows so it
+// wraps on spaces without breaking a word or overflowing the tile.
+function nameSize(name: string): number {
+  const len = name.length;
+  const longestWord = Math.max(...name.split(/\s+/).map((w) => w.length));
+  let rem = len <= 11 ? 0.92 : len <= 15 ? 0.8 : len <= 19 ? 0.7 : 0.62;
+  if (longestWord >= 9) rem = Math.min(rem, 0.72); // keep long words on one line
+  return rem;
+}
+
 // up to 3 initials, one char per word; keeps "&" (e.g. "Libby & Drbal" -> L&D)
 const initialsOf = (n: string) =>
   n
@@ -450,12 +460,6 @@ export default function App() {
                 </div>
               </aside>
             </div>
-
-            {!done && (
-              <button className="replay" onClick={skip}>
-                ⏭ Skip reveal
-              </button>
-            )}
           </section>
         ))}
     </div>
@@ -500,7 +504,12 @@ function RowFragment({
                 animationDuration: `${FLIP_MS}ms`,
               }}
             >
-              <span className="cell-initials">{initialsOf(name)}</span>
+              <span
+                className="cell-name"
+                style={{ fontSize: `${nameSize(name)}rem` }}
+              >
+                {name}
+              </span>
             </div>
           </div>
         ) : (

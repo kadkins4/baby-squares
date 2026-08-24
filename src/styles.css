@@ -222,7 +222,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: clamp(64px, 11vh, 128px);
+  /* size rows to fit the viewport height so the whole board shows without
+     scrolling on normal laptop heights (~210px overhead above/below the 7
+     rows). Floors at 46px on very short windows, where the page then scrolls. */
+  min-height: clamp(46px, calc((100vh - 220px) / 7), 128px);
   padding: 4px;
   border-radius: 12px;
 }
@@ -460,6 +463,21 @@ body {
   font-weight: 800;
   font-size: clamp(0.85rem, 1.1vw, 1.05rem);
   letter-spacing: 0.03em;
+}
+/* full-name tile label: wrap on spaces only (never mid-word), centered.
+   font-size is set inline per name by nameSize(). */
+.cell-name {
+  display: block;
+  width: 100%;
+  padding: 0 5px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  text-align: center;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
 }
 
 /* narrow desktop / tablet: stack the panel under the board */
