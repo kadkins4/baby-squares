@@ -10,12 +10,13 @@ import config from "./config.json";
 import placement from "./placement.json";
 
 // --- reveal timing (ms). Tune these to taste. ---
-const NAME_STAGGER = 380; // between each name popping in
-const NAMES_START = 450; // lead-in before names start popping
-const POP_MS = 620; // pop animation duration (keep in sync with .pop in CSS)
-const OPEN_GAP = 550; // pause after the last name before OPEN slots appear
-const OPEN_STAGGER = 160; // between each OPEN slot fading in
-const SETTLE = 500; // flourish tail after last reveal
+// Row cascade: the gray board is present from the start; tiles flip in color
+// day-row by day-row (Sun -> Sat), left to right within each row.
+const REVEAL_LEAD = 300; // lead-in before the first tile flips
+const ROW_STAGGER = 1200; // between each day-row starting
+const COL_STAGGER = 90; // between cells within a row (left -> right)
+const FLIP_MS = 2000; // desktop card-flip duration (drives .cell-fill inline)
+const SETTLE = 400; // tail after the last tile lands
 
 const { rows, cols } = config.board;
 const cells = placement.cells as (string | null)[];
@@ -52,15 +53,6 @@ function KaMark() {
   );
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 type Timing = {
   nameDelay: number[]; // per cell index (filled cells only)
   openDelay: number[]; // per cell index (open cells only)
@@ -68,28 +60,22 @@ type Timing = {
 };
 
 function buildTiming(): Timing {
-  // Random *visual* order (not placement — placement is frozen).
-  // Names pop back-to-back first; empty slots fade in afterward.
-  const all = cells.map((_, i) => i);
-  const filled = shuffle(all.filter((i) => cells[i] != null));
-  const open = shuffle(all.filter((i) => cells[i] == null));
-
+  // Row cascade keyed on board position (placement is frozen): each cell's
+  // delay is its row + column offset, so the color sweeps top-to-bottom,
+  // left-to-right. Desktop flips the filled tiles; open cells stay gray.
+  // Mobile reuses these delays for its pop / fade-in.
   const nameDelay = new Array(cells.length);
-  filled.forEach((cellIdx, pos) => {
-    nameDelay[cellIdx] = NAMES_START + pos * NAME_STAGGER;
-  });
-
-  const lastName =
-    NAMES_START + Math.max(0, filled.length - 1) * NAME_STAGGER + POP_MS;
-  const openStart = lastName + OPEN_GAP;
-
   const openDelay = new Array(cells.length);
-  open.forEach((cellIdx, pos) => {
-    openDelay[cellIdx] = openStart + pos * OPEN_STAGGER;
-  });
-
-  const total = openStart + open.length * OPEN_STAGGER + SETTLE;
-
+  let maxDelay = 0;
+  for (let i = 0; i < cells.length; i++) {
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    const d = REVEAL_LEAD + r * ROW_STAGGER + c * COL_STAGGER;
+    if (cells[i] == null) openDelay[i] = d;
+    else nameDelay[i] = d;
+    if (d > maxDelay) maxDelay = d;
+  }
+  const total = maxDelay + FLIP_MS + SETTLE;
   return { nameDelay, openDelay, total };
 }
 
@@ -432,7 +418,6 @@ export default function App() {
               <aside
                 className={`desk-roster ${done ? "" : "is-locked"}`}
                 ref={rosterRef}
-                style={{ animationDelay: `${timing.total}ms` }}
                 onMouseLeave={() => done && !lockName && setHotName(null)}
               >
                 <h3 className="dr-head">Participants · {legend.length}</h3>
@@ -498,33 +483,32 @@ function RowFragment({
         const name = cells[idx];
         const dark = (row + col) % 2 === 0;
         const isHot = name != null && name === hot;
+        const seat = dark ? "cell--dark" : "cell--light";
+        // the gray seat is present from the start; the colored tile flips in
+        // on top per the row cascade. Open seats stay gray (no animation).
         return name ? (
           <div
             key={idx}
-            className={`cell cell--filled ${isHot ? "hot" : ""}`}
-            style={{ background: colorFor[name] }}
+            className={`cell cell--seat ${seat} ${isHot ? "hot" : ""}`}
             title={name}
           >
-            <span
-              className="cell-initials pop"
-              style={{ animationDelay: `${timing.nameDelay[idx]}ms` }}
+            <div
+              className="cell-fill flip"
+              style={{
+                background: colorFor[name],
+                animationDelay: `${timing.nameDelay[idx]}ms`,
+                animationDuration: `${FLIP_MS}ms`,
+              }}
             >
-              {initialsOf(name)}
-            </span>
+              <span className="cell-initials">{initialsOf(name)}</span>
+            </div>
           </div>
         ) : (
           <div
             key={idx}
-            className={`cell ${dark ? "cell--dark" : "cell--light"} ${
-              isHot ? "hot" : ""
-            }`}
+            className={`cell cell--seat ${seat} ${isHot ? "hot" : ""}`}
           >
-            <span
-              className="name name--open fade-open"
-              style={{ animationDelay: `${timing.openDelay[idx]}ms` }}
-            >
-              OPEN
-            </span>
+            <span className="name name--open">OPEN</span>
           </div>
         );
       })}

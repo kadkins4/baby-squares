@@ -310,7 +310,8 @@ body {
   min-width: 0;
 }
 
-/* the roster fades in after the reveal, like the old legend did */
+/* the roster is present the whole time (locked until the reveal finishes) so
+   the right side of the board isn't empty while the animation plays */
 .desk-roster {
   flex: 0 0 clamp(260px, 23vw, 340px);
   display: flex;
@@ -319,8 +320,6 @@ body {
   border: 1px solid rgba(147, 197, 253, 0.14);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.03);
-  opacity: 0;
-  animation: fadeOpen 0.6s ease both;
 }
 /* no highlighting until the reveal is done, so it can't give the board away */
 .desk-roster.is-locked {
@@ -418,9 +417,42 @@ body {
 }
 
 /* filled desktop cells: a color-coded tile with initials (hover the roster for
-   the full name). Colors map per person, so the board reads at a glance. */
-.cell--filled {
+   the full name). Colors map per person, so the board reads at a glance.
+   The tile flips in over the gray seat; clip it to the rounded cell. */
+.cell--seat {
+  overflow: hidden;
+}
+.cell-fill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+/* card flip around the vertical center axis; duration + delay set inline
+   from the JS timing constants (FLIP_MS, per-cell nameDelay). */
+.cell-fill.flip {
+  opacity: 0;
+  animation-name: cardflip;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation-fill-mode: both;
+}
+@keyframes cardflip {
+  0% {
+    opacity: 0;
+    transform: perspective(700px) rotateY(-90deg);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(700px) rotateY(0deg);
+  }
 }
 .cell-initials {
   display: inline-block;
@@ -460,7 +492,7 @@ body {
 /* Skip reveal: snap everything to its final state instantly */
 .stage.is-done .pop,
 .stage.is-done .fade-open,
-.stage.is-done .desk-roster {
+.stage.is-done .cell-fill {
   animation: none !important;
   opacity: 1 !important;
   transform: none !important;
@@ -469,7 +501,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .pop,
   .fade-open,
-  .desk-roster,
+  .cell-fill,
   .title-card,
   .start {
     animation: none !important;
