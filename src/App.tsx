@@ -1,4 +1,11 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import config from "./config.json";
 import placement from "./placement.json";
 
@@ -154,6 +161,33 @@ const initialsOf = (n: string) =>
     .slice(0, 3)
     .toUpperCase();
 
+// "12AM - 3AM" -> "12–3a" for the desktop column headers (compact range).
+// Covers every auto-scale block; falls back to shortTime for anything unmapped.
+const SHORT_RANGE: Record<string, string> = {
+  "12AM - 3AM": "12–3a",
+  "3AM - 6AM": "3–6a",
+  "6AM - 9AM": "6–9a",
+  "9AM - 12PM": "9–12p",
+  "12PM - 3PM": "12–3p",
+  "3PM - 6PM": "3–6p",
+  "6PM - 9PM": "6–9p",
+  "9PM - 12AM": "9p–12",
+  "12AM - 4AM": "12–4a",
+  "4AM - 8AM": "4–8a",
+  "8AM - 12PM": "8–12p",
+  "12PM - 4PM": "12–4p",
+  "4PM - 8PM": "4–8p",
+  "8PM - 12AM": "8p–12",
+  "12AM - 6AM": "12–6a",
+  "6AM - 12PM": "6–12p",
+  "12PM - 6PM": "12–6p",
+  "6PM - 12AM": "6p–12",
+  "12AM - 8AM": "12–8a",
+  "8AM - 4PM": "8a–4p",
+  "4PM - 12AM": "4p–12",
+};
+const shortRange = (label: string) => SHORT_RANGE[label] ?? shortTime(label);
+
 // "12AM - 3AM" -> "12a" for the tiny mobile board header
 function shortTime(label: string) {
   if (!label.includes("-")) return label;
@@ -190,25 +224,53 @@ export default function App() {
   // new object each start => re-randomizes the visual order and restarts CSS animations
   const [timing, setTiming] = useState<Timing | null>(null);
   const [done, setDone] = useState(false); // reveal finished (or skipped)
-  const [legendOpen, setLegendOpen] = useState(true);
   const [view, setView] = useState<ViewKey>("board"); // mobile tab
   const [selCell, setSelCell] = useState<number | null>(null); // mobile board tap
   const [selName, setSelName] = useState<string | null>(null); // mobile "Mine"
+  const [hotName, setHotName] = useState<string | null>(null); // desktop roster hover
+  const [lockName, setLockName] = useState<string | null>(null); // desktop roster click
   const doneTimer = useRef<ReturnType<typeof setTimeout>>();
+  const boardRef = useRef<HTMLDivElement>(null);
+  const rosterRef = useRef<HTMLDivElement>(null);
 
   const isMobile = useIsMobile();
   // switcher only appears after the reveal; until then the board is the moment
   const activeView: ViewKey = done ? view : "board";
+  // a click locks a person's highlight; hover previews it until then.
+  // highlighting is disabled during the reveal so scrolling the roster can't
+  // give the board away — it only lights up once the reveal is done.
+  const activeHot = lockName ?? hotName;
+  const boardHot = done ? activeHot : null;
+
+  // desktop: keep the roster panel exactly as tall as the board (scrolls if the
+  // participant list is longer). Released to auto height on the stacked layout.
+  useEffect(() => {
+    const b = boardRef.current;
+    const r = rosterRef.current;
+    if (isMobile || !b || !r) return;
+    const twoCol = window.matchMedia("(min-width: 861px)");
+    const sync = () => {
+      r.style.height = twoCol.matches ? `${b.offsetHeight}px` : "";
+    };
+    const ro = new ResizeObserver(sync);
+    ro.observe(b);
+    twoCol.addEventListener("change", sync);
+    sync();
+    return () => {
+      ro.disconnect();
+      twoCol.removeEventListener("change", sync);
+    };
+  }, [isMobile, started, done]);
 
   const grid = useMemo(
     () => ({
-      gridTemplateColumns: `minmax(3.5rem, auto) repeat(${cols}, minmax(0, 1fr))`,
+      gridTemplateColumns: `minmax(2.5rem, auto) repeat(${cols}, minmax(0, 1fr))`,
     }),
     [],
   );
-  // widen the stage for bigger boards so names aren't crushed (scrolls if still too wide)
+  // use most of the width so the board fills the space instead of floating small
   const stageStyle = useMemo(
-    () => ({ maxWidth: `min(96vw, ${Math.max(720, cols * 120 + 90)}px)` }),
+    () => ({ maxWidth: `min(98vw, ${Math.max(900, cols * 180 + 80)}px)` }),
     [],
   );
 
@@ -218,6 +280,8 @@ export default function App() {
     setTiming(t);
     setDone(false);
     setSelCell(null);
+    setHotName(null);
+    setLockName(null);
     setStarted(true);
     doneTimer.current = setTimeout(() => setDone(true), t.total);
   }
@@ -243,7 +307,9 @@ export default function App() {
   const statsBlock = (
     <div className="board-stats">
       <span className="board-stat">
-        {filledSquares} / {boardSquares} squares filled
+        {filledSquares === boardSquares
+          ? `${boardSquares} squares`
+          : `${filledSquares} of ${boardSquares} squares filled`}
       </span>
       <span className="board-stat-sep" aria-hidden="true">
         ·
@@ -337,69 +403,74 @@ export default function App() {
           >
             <h1 className="board-title">{config.title}</h1>
             {statsBlock}
-            <div className="board-wrap">
-              <div className="board" style={grid}>
-                <div className="corner" />
-                {config.xLabels.slice(0, cols).map((label, col) => (
-                  <div key={`x${col}`} className="head head--x">
-                    <span>{label}</span>
-                  </div>
-                ))}
+            <div className="desk-shell">
+              <div className="board-wrap">
+                <div
+                  className={`board ${boardHot ? "is-filtering" : ""}`}
+                  style={grid}
+                  ref={boardRef}
+                >
+                  <div className="corner" />
+                  {config.xLabels.slice(0, cols).map((label, col) => (
+                    <div key={`x${col}`} className="head head--x">
+                      <span>{shortRange(label)}</span>
+                    </div>
+                  ))}
 
-                {config.yLabels.slice(0, rows).map((label, row) => (
-                  <RowFragment
-                    key={`row${row}`}
-                    row={row}
-                    label={label}
-                    timing={timing}
-                  />
-                ))}
+                  {config.yLabels.slice(0, rows).map((label, row) => (
+                    <RowFragment
+                      key={`row${row}`}
+                      row={row}
+                      label={label}
+                      timing={timing}
+                      hot={boardHot}
+                    />
+                  ))}
+                </div>
               </div>
+
+              <aside
+                className={`desk-roster ${done ? "" : "is-locked"}`}
+                ref={rosterRef}
+                style={{ animationDelay: `${timing.total}ms` }}
+                onMouseLeave={() => done && !lockName && setHotName(null)}
+              >
+                <h3 className="dr-head">Participants · {legend.length}</h3>
+                <div className="dr-scroll">
+                  {legend.map((p) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      className={`dr-row ${lockName === p.name ? "locked" : ""} ${
+                        boardHot === p.name ? "on" : ""
+                      }`}
+                      style={{ ["--sw"]: colorFor[p.name] } as CSSProperties}
+                      aria-pressed={lockName === p.name}
+                      onMouseEnter={() => done && setHotName(p.name)}
+                      onFocus={() => done && setHotName(p.name)}
+                      onBlur={() => done && !lockName && setHotName(null)}
+                      onClick={() => {
+                        if (!done) return;
+                        setLockName((v) => (v === p.name ? null : p.name));
+                      }}
+                    >
+                      <span className="dr-sw" aria-hidden="true" />
+                      <span className="dr-name">{p.name}</span>
+                      <span className="dr-n">{p.count}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="dr-hint">
+                  Hover or tap a name to light their squares.
+                </div>
+              </aside>
             </div>
-            {done ? (
-              <button className="replay" onClick={replay}>
-                ↻ Replay
-              </button>
-            ) : (
+
+            {!done && (
               <button className="replay" onClick={skip}>
                 ⏭ Skip reveal
               </button>
             )}
-
-            <div
-              className={`legend ${legendOpen ? "is-open" : "is-closed"}`}
-              style={{ animationDelay: `${timing.total}ms` }}
-            >
-              <button
-                type="button"
-                className="legend-head"
-                onClick={() => setLegendOpen((o) => !o)}
-                aria-expanded={legendOpen}
-              >
-                <span>
-                  {legendOpen
-                    ? `Entries - ${legend.length} Participants`
-                    : `${legend.length} Participants`}
-                </span>
-                <span className="legend-toggle" aria-hidden="true">
-                  {legendOpen ? "▲" : "▼"}
-                </span>
-              </button>
-              {legendOpen &&
-                legend.map((p) => (
-                  <div className="legend-row" key={p.name}>
-                    <span className="legend-count">{p.count}</span>
-                    <span className="legend-name">{p.name}</span>
-                    <span className="legend-slots">
-                      {p.slots.map((s, i) => (
-                        <span className="legend-slot" key={i}>
-                          {s}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                ))}
-            </div>
           </section>
         ))}
     </div>
@@ -410,10 +481,12 @@ function RowFragment({
   row,
   label,
   timing,
+  hot,
 }: {
   row: number;
   label: string;
   timing: Timing;
+  hot: string | null;
 }) {
   return (
     <>
@@ -424,26 +497,34 @@ function RowFragment({
         const idx = row * cols + col;
         const name = cells[idx];
         const dark = (row + col) % 2 === 0;
-        return (
+        const isHot = name != null && name === hot;
+        return name ? (
           <div
             key={idx}
-            className={`cell ${dark ? "cell--dark" : "cell--light"}`}
+            className={`cell cell--filled ${isHot ? "hot" : ""}`}
+            style={{ background: colorFor[name] }}
+            title={name}
           >
-            {name ? (
-              <span
-                className="name pop"
-                style={{ animationDelay: `${timing.nameDelay[idx]}ms` }}
-              >
-                {name}
-              </span>
-            ) : (
-              <span
-                className="name name--open fade-open"
-                style={{ animationDelay: `${timing.openDelay[idx]}ms` }}
-              >
-                OPEN
-              </span>
-            )}
+            <span
+              className="cell-initials pop"
+              style={{ animationDelay: `${timing.nameDelay[idx]}ms` }}
+            >
+              {initialsOf(name)}
+            </span>
+          </div>
+        ) : (
+          <div
+            key={idx}
+            className={`cell ${dark ? "cell--dark" : "cell--light"} ${
+              isHot ? "hot" : ""
+            }`}
+          >
+            <span
+              className="name name--open fade-open"
+              style={{ animationDelay: `${timing.openDelay[idx]}ms` }}
+            >
+              OPEN
+            </span>
           </div>
         );
       })}
