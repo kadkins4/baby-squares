@@ -336,9 +336,20 @@ export default function App() {
         <section className="title-card">
           <h1 className="title">{config.title}</h1>
           <p className="subtitle">{config.subtitle}</p>
-          <button className="start" onClick={start}>
-            {config.startButtonLabel}
-          </button>
+          <div className="title-actions">
+            <button className="start" onClick={start}>
+              {config.startButtonLabel}
+            </button>
+            <button
+              className="start start--soon"
+              type="button"
+              disabled
+              aria-disabled="true"
+            >
+              <span className="soon-main">Create</span>
+              <span className="soon-tag">Coming Soon</span>
+            </button>
+          </div>
         </section>
       )}
 

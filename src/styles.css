@@ -122,14 +122,27 @@ body {
   font-size: clamp(1rem, 3vw, 1.25rem);
   color: #9fb4d6;
 }
+.title-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  justify-content: center;
+  align-items: center;
+}
 .start {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 11rem;
+  min-height: 3.4rem;
   border: 0;
   cursor: pointer;
   font: inherit;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1rem;
   color: #04122e;
-  padding: 0.9rem 2.2rem;
+  padding: 0.6rem 1.6rem;
   border-radius: 999px;
   background: linear-gradient(180deg, #bfe0ff, var(--blue-light));
   box-shadow:
@@ -143,6 +156,32 @@ body {
 }
 .start:active {
   transform: translateY(0);
+}
+/* teaser for the not-yet-built create-your-own flow: reads as present but
+   plainly inactive (no glow, muted, not clickable). "Create" over a small
+   "Coming Soon" line, same width as Reveal. */
+.start--soon {
+  gap: 0.1rem;
+  cursor: not-allowed;
+  color: #9fb4d6;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.22);
+  animation: none;
+}
+.start--soon:hover {
+  transform: none;
+}
+.soon-main {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.soon-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9cb6e6;
 }
 @keyframes glow {
   0%,
